@@ -1,11 +1,23 @@
 const express = require('express');
+const cors = require('cors');
+const { MongoClient } = require('mongodb');
+const fs = require('fs/promises');
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
-const { MongoClient } = require('mongodb');
-const mongoConnectionString ='mongodb+srv://oriazadok:sz3ucFQwxqx5Avk@cluster0.feaagjf.mongodb.net/?retryWrites=true&w=majority';
+const mongoConnectionString = 'mongodb+srv://oriazadok:sz3ucFQwxqx5Avk@cluster0.feaagjf.mongodb.net/?retryWrites=true&w=majority';
+app.use(express.json());
+app.use(cors({
+  origin: 'http://localhost:3000',
+  credentials: true,
+  methods: ['GET', 'POST'],
+}));
+app.options('/api/signup', cors());
 
+app.get('/', (req, res) => {
+  res.send('Hello World!');
+});
 
 async function retrieveDataFromAtlas() {
   try {
@@ -35,21 +47,24 @@ async function insertDataToAtlas(dataToInsert) {
     const client = await MongoClient.connect(mongoConnectionString, { useNewUrlParser: true, useUnifiedTopology: true });
 
     // Get the database and collection
-    const db = client.db("my_database");
-    const collection = db.collection("my_collection");
+    const db = client.db("miluim");
+    const collection = db.collection("accounts");
 
-    const result = await collection.deleteMany({});
-    // console.log(`${result.deletedCount} documents deleted.`);
+    // await collection.deleteMany({});
 
-    // Loop through the dataToInsert array and insert each object into the collection
-    for (const data of dataToInsert) {
-      // Convert the date to ISO format using moment.js
-      data.date = moment(data.date, 'YYYY MMM DD').toISOString();
+    // Read data from the JSON file
+    // const jsonData = await fs.readFile('/home/oriaz/Desktop/generate/data_profiles.json', 'utf-8');
+    // const dataToInsert = JSON.parse(jsonData);
 
-      // Insert the data object into the collection
+    // await collection.deleteMany({});
+
+    // let i = 0;
+    // // Loop through the dataToInsert array and insert each object into the collection
+    // for (const data of dataToInsert) {
       await collection.insertOne(data);
-      // console.log('Data inserted successfully:', data);
-    }
+      // console.log(i++)
+    // }
+    
 
     // Close the connection to the database
     client.close();
@@ -57,6 +72,45 @@ async function insertDataToAtlas(dataToInsert) {
     console.error('Error:', error);
   }
 }
+
+
+// insertDataToAtlas();
+
+async function signup(formData) {
+  try {
+    // Connect to MongoDB Atlas
+    const client = await MongoClient.connect(mongoConnectionString);
+
+    // Get the database and collection
+    const db = client.db("miluim");
+    const collection = db.collection("accounts");
+
+    // Insert the form data into the MongoDB collection
+    await collection.insertOne(formData);
+
+    // Close the connection to the database
+    client.close();
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+
+
+app.post('/api/signup', async (req, res) => {
+  const formData = req.body; // Get the form data from the request body
+
+  console.log("form data: ", formData);
+
+  // Perform any additional validation or processing if needed
+
+  // Insert the form data into MongoDB
+  await signup(formData);
+
+  // Respond to the client
+  res.json({ message: 'Signup successful' });
+});
+
 
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
