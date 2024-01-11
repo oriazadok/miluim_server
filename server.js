@@ -76,14 +76,15 @@ async function insertDataToAtlas(dataToInsert) {
 
 // insertDataToAtlas();
 
-async function signup(formData) {
+async function signup(type, formData) {
   try {
     // Connect to MongoDB Atlas
     const client = await MongoClient.connect(mongoConnectionString);
 
+
     // Get the database and collection
     const db = client.db("miluim");
-    const collection = db.collection("accounts");
+    const collection = db.collection(type);
 
     // Insert the form data into the MongoDB collection
     await collection.insertOne(formData);
@@ -97,7 +98,7 @@ async function signup(formData) {
 
 
 
-app.post('/api/signup', async (req, res) => {
+app.post('/api/signup_recruiter', async (req, res) => {
   const formData = req.body; // Get the form data from the request body
 
   console.log("form data: ", formData);
@@ -105,7 +106,21 @@ app.post('/api/signup', async (req, res) => {
   // Perform any additional validation or processing if needed
 
   // Insert the form data into MongoDB
-  await signup(formData);
+  await signup("recruiters", formData);
+
+  // Respond to the client
+  res.json({ message: 'Signup successful' });
+});
+
+app.post('/api/signup_volunteer', async (req, res) => {
+  const formData = req.body; // Get the form data from the request body
+
+  console.log("form data: ", formData);
+
+  // Perform any additional validation or processing if needed
+
+  // Insert the form data into MongoDB
+  await signup("volunteers", formData);
 
   // Respond to the client
   res.json({ message: 'Signup successful' });
