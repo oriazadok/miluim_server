@@ -26,60 +26,6 @@ app.get('/', (req, res) => {
   res.send('Hello World!');
 });
 
-// Function to retrieve data from MongoDB Atlas
-async function retrieveDataFromAtlas() {
-  try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    // Get the database and collection
-    const db = client.db("sample_analytics"); // Change to your actual database name
-    const collection = db.collection("accounts");
-
-    // Retrieve data from the collection
-    const retrievedData = await collection.find({}).toArray();
-
-    // Log the retrieved data
-    console.log('Retrieved Data:', retrievedData);
-
-    // Close the connection to the database
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-// Function to insert data into MongoDB Atlas
-async function insertDataToAtlas(dataToInsert) {
-  try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString, { useNewUrlParser: true, useUnifiedTopology: true });
-
-    // Get the database and collection
-    const db = client.db("miluim");
-    const collection = db.collection("accounts");
-
-    // await collection.deleteMany({});
-
-    // Read data from the JSON file
-    const jsonData = await fs.readFile('/home/oriaz/Desktop/generate/data_profiles.json', 'utf-8');
-    const dataToInsert = JSON.parse(jsonData);
-
-    // await collection.deleteMany({});
-
-    // let i = 0;
-    // // Loop through the dataToInsert array and insert each object into the collection
-    // for (const data of dataToInsert) {
-      await collection.insertOne(data);
-      // console.log(i++)
-    // }
-
-    // Close the connection to the database
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
 
 // Function to handle signup for recruiters and volunteers
 async function signup(type, formData) {
@@ -89,10 +35,27 @@ async function signup(type, formData) {
 
     // Get the database and collection
     const db = client.db("miluim");
-    const collection = db.collection(type);
 
-    // Insert the form data into the MongoDB collection
-    await collection.insertOne(formData);
+    const collection = db.collection("auth");
+
+    // Insert data into the 'auth' collection
+    const auth = await collection.insertOne({ email: formData.email, password: formData.password, type: type });
+
+    // Extract the insertedId from the 'auth' collection result
+    const insertedId = auth.insertedId;
+
+    console.log("auth: ", insertedId);
+
+    if (insertedId) {
+      // Add the insertedId to the formData
+      formData._id = insertedId;
+
+      // Get the collection for the second collection
+      const secondCollection = db.collection(type);
+
+      // Insert data into the second collection
+      await secondCollection.insertOne(formData);
+    }
 
     // Close the connection to the database
     client.close();
@@ -100,6 +63,41 @@ async function signup(type, formData) {
     console.error('Error:', error);
   }
 }
+
+
+// Function to handle signup for recruiters and volunteers
+async function signin(formData) {
+  try {
+    // Connect to MongoDB Atlas
+    const client = await MongoClient.connect(mongoConnectionString);
+
+    // Get the database and collection
+    const db = client.db("miluim");
+    const collection = db.collection("auth");
+
+    // Create a query based on the provided formData (assuming email is unique)
+    const query = { email: formData.email, password: formData.password };
+
+    // Find a document that matches the query
+    const existingUser = await collection.findOne(query);
+
+    // Check if the user with the provided credentials exists
+    if (existingUser) {
+      console.log("User exists:", existingUser);
+      return existingUser._id;
+      // Perform additional actions or return a response as needed
+    } else {
+      console.log("User not found");
+      // Perform actions for a non-existing user, such as showing an error message
+    }
+
+    // Close the connection to the database
+    client.close();
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
 
 // Function to add a position to MongoDB Atlas
 async function addPosition(position) {
@@ -125,9 +123,7 @@ async function addPosition(position) {
 app.post('/api/signup_recruiter', async (req, res) => {
   const formData = req.body; // Get the form data from the request body
 
-  console.log("form data: ", formData);
-
-  // Perform any additional validation or processing if needed
+  // console.log("form data: ", formData);
 
   // Insert the form data into MongoDB
   await signup("recruiters", formData);
@@ -149,6 +145,18 @@ app.post('/api/signup_volunteer', async (req, res) => {
 
   // Respond to the client
   res.json({ message: 'Signup successful' });
+});
+
+app.post('/api/signin', async (req, res) => {
+  const formData = req.body; // Get the form data from the request body
+
+  console.log("form data: ", formData);
+
+  // Insert the form data into MongoDB
+  const user = await signin(formData);
+
+  // Respond to the client
+  res.json(user);
 });
 
 // Endpoint to handle adding a position
@@ -175,6 +183,7 @@ app.get('/api/volunteers', async (req, res) => {
     const collection = db.collection("volunteers");
 
     const volunteersData = await collection.find({}).toArray();
+    console.log("volll: ", volunteersData);
 
     // Close the connection to the database
     client.close();
