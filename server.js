@@ -84,7 +84,10 @@ async function signin(formData) {
     // Check if the user with the provided credentials exists
     if (existingUser) {
       console.log("User exists:", existingUser);
-      return existingUser._id;
+
+      const response = {id: existingUser._id, type: existingUser.type}
+      
+      return response;
       // Perform additional actions or return a response as needed
     } else {
       console.log("User not found");
@@ -141,7 +144,7 @@ app.post('/api/signup_volunteer', async (req, res) => {
   // Perform any additional validation or processing if needed
 
   // Insert the form data into MongoDB
-  await signup("volunteers", formData);
+  await signup("volunteer", formData);
 
   // Respond to the client
   res.json({ message: 'Signup successful' });
