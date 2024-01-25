@@ -2,7 +2,6 @@
 const express = require('express');
 const cors = require('cors');
 const { MongoClient } = require('mongodb');
-// const fs = require('fs/promises');
 
 // Initialize Express app
 const app = express();
@@ -38,13 +37,25 @@ async function signup(type, formData) {
 
     const collection = db.collection("auth");
 
+    // Create a query based on the provided formData (assuming email is unique)
+    const query = { email: formData.email, password: formData.password };
+
+    // Find a document that matches the query
+    const existingUser = await collection.findOne(query);
+
+    // If the user already exists, return without inserting data
+    if (existingUser !== null) {
+      console.log("User already exists. No data inserted.");
+      return;
+    }
+
     // Insert data into the 'auth' collection
     const auth = await collection.insertOne({ email: formData.email, password: formData.password, type: type });
 
+    
     // Extract the insertedId from the 'auth' collection result
     const insertedId = auth.insertedId;
-
-    console.log("auth: ", insertedId);
+    console.log("auth is: ", auth.insertedId);
 
     if (insertedId) {
       // Add the insertedId to the formData
@@ -55,6 +66,9 @@ async function signup(type, formData) {
 
       // Insert data into the second collection
       await secondCollection.insertOne(formData);
+      const response = {_id: auth.insertedId, type: type}
+
+      return response;
     }
 
     // Close the connection to the database
@@ -63,6 +77,8 @@ async function signup(type, formData) {
     console.error('Error:', error);
   }
 }
+
+
 
 
 // Function to handle signup for recruiters and volunteers
@@ -81,21 +97,19 @@ async function signin(formData) {
     // Find a document that matches the query
     const existingUser = await collection.findOne(query);
 
+    // Close the connection to the database
+    client.close();
+
     // Check if the user with the provided credentials exists
     if (existingUser) {
       console.log("User exists:", existingUser);
 
-      const response = {id: existingUser._id, type: existingUser.type}
+      const response = {_id: existingUser._id, type: existingUser.type}
       
       return response;
       // Perform additional actions or return a response as needed
-    } else {
-      console.log("User not found");
-      // Perform actions for a non-existing user, such as showing an error message
     }
 
-    // Close the connection to the database
-    client.close();
   } catch (error) {
     console.error('Error:', error);
   }
@@ -126,13 +140,11 @@ async function addPosition(position) {
 app.post('/api/signup_recruiter', async (req, res) => {
   const formData = req.body; // Get the form data from the request body
 
-  // console.log("form data: ", formData);
-
   // Insert the form data into MongoDB
-  await signup("recruiters", formData);
+  const user = await signup("recruiters", formData);
 
   // Respond to the client
-  res.json({ message: 'Signup successful' });
+  res.json(user);
 });
 
 // Endpoint to handle volunteer signup
@@ -141,13 +153,11 @@ app.post('/api/signup_volunteer', async (req, res) => {
 
   console.log("form data: ", formData);
 
-  // Perform any additional validation or processing if needed
-
   // Insert the form data into MongoDB
-  await signup("volunteer", formData);
+  const user = await signup("volunteers", formData);
 
   // Respond to the client
-  res.json({ message: 'Signup successful' });
+  res.json(user);
 });
 
 app.post('/api/signin', async (req, res) => {
@@ -157,6 +167,7 @@ app.post('/api/signin', async (req, res) => {
 
   // Insert the form data into MongoDB
   const user = await signin(formData);
+  console.log("user: ", user);
 
   // Respond to the client
   res.json(user);
