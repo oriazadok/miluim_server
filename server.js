@@ -4,9 +4,16 @@ const cors = require('cors');
 const { MongoClient } = require('mongodb');
 const { ObjectId } = require('mongodb');
 
+const { DBConnection, connectDB } = require('./DBConnection');
+const { signup, signin } = require('./signing');
+const { addPosition, getUserPositionsData } = require('./positions')
+
 // Initialize Express app
-const app = express();
+const app = express(); 
+
+
 const port = 3001;
+
 
 // MongoDB Atlas connection string
 const mongoConnectionString = 'mongodb+srv://oriazadok:sz3ucFQwxqx5Avk@cluster0.feaagjf.mongodb.net/?retryWrites=true&w=majority';
@@ -20,272 +27,62 @@ app.use(cors({
 }));
 app.options('/api/signup', cors());
 
-class DBConnection {
-  constructor(client) {
-    this.client = client;
-
-    this.db = this.client.db("miluim");
-  }
-
-  close() {
-    this.client.close();
-  }
-
-  positions() {
-    return db.collection("positions");
-  }
-
-  collectionType(type) {
-    const types = ["t1"];
-    
-    if (!types.includes(type)) {
-      return null;
-    }
-
-    return db.collection(type);
-  }
-
-  example() {
-    return db.collection("example");
-  }
-}
 
 
-// Default route
-app.get('/', (req, res) => {
-  res.send('Hello World!');
-});
 
 
-// Function to handle signup for recruiters and volunteers
-// This function get type and form data and return the object of the user
-/**
- * 
- * @param {*} type 
- * @param {*} formData 
- * @returns Object of the user
- */
-async function signup(type, formData) {
 
-  try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString);
 
-    // Get the database and collection
-    const db = client.db("miluim");
 
-    const authCollection = db.collection("auth");
 
-    // Create a query based on the provided formData (assuming email is unique)
-    const query = { email: formData.email, password: formData.password };
 
-    // Find a document that matches the query
-    const existingUser = await authCollection.findOne(query);
 
-    // If the user already exists, return without inserting data
-    if (existingUser !== null) {
-      console.log("User already exists. No data inserted.");
-      return;
-    }
 
-    // Insert data into the 'auth' collection
-    const newAuth = await authCollection.insertOne({ email: formData.email, password: formData.password, type: type });
-
-    if (newAuth.insertedId) {
-      // Add the insertedId to the formData
-      formData._id = newAuth.insertedId;
-
-      // Get the collection for the second collection
-      const typeCollection = db.collection(type);
-
-      // Insert data into the second collection
-      const newUser = await typeCollection.insertOne(formData);
-
-      if(newUser) {
-        
-        const userData = await typeCollection.findOne({_id: newUser.insertedId});
-        userData.type = type;
-        return userData;
-      }
-    }
-
-    // Close the connection to the database
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-// Function to handle signup for recruiters and volunteers
-/**
- * 
- * @param {*} formData 
- * @returns Object of the user
- */
-async function signin(formData) {
-  try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString);
-
-    // Get the database and collection
-    const db = client.db("miluim");
-    const authCollection = db.collection("auth");
-
-    // Create a query based on the provided formData (assuming email is unique)
-    const query = { email: formData.email, password: formData.password };
-
-    // Find a document that matches the query
-    const existingUser = await authCollection.findOne(query);
-
-    // Close the connection to the database
-    client.close();
-
-    // Check if the user with the provided credentials exists
-    if (existingUser) {
-      console.log("User exists:", existingUser);
-
-      const typeCollection = db.collection(existingUser.type);
-
-      // Create a query based on the provided formData (assuming email is unique)
-      const getUserDataQuery = { _id: existingUser._id };
-
-      // Find a document that matches the query
-      const useData = await typeCollection.findOne(getUserDataQuery);
-      
-      useData.type = existingUser.type;
-      
-      return useData;
-    }
-
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
 
 
 
 /**
- * 
- * @returns Promis<DBConnection> the db
- */
-async function connecDB() {
-  const client = await MongoClient.connect(mongoConnectionString);
-
-  return DBConnection(client);
-}
-
-// Function to add a position to MongoDB Atlas
-async function addPosition(position) {
-
-  console.log("position is: ", position);
-
-  try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString);
-
-    // Get the database and collection
-    const db = client.db("miluim");
-    const positionsCollection = db.collection("positions");
-
-    // Insert the form data into the MongoDB collection
-    const posId = await positionsCollection.insertOne(position);
-    console.log("posId: ", posId);
-
-    const typeCollection = db.collection(position.type);
-
-    let query = { _id: new ObjectId(position.publisherId) };
-
-    
-    // Use $push to add the new item to the array field
-    let update = {
-      $push: { positions: posId.insertedId }
-    };
-    console.log("query: ", query);
-    console.log("update: ", update);
-    
-    let result = await typeCollection.updateOne(query, update);
-    console.log("ressssss: ", result);
-
-    // Close the connection to the database
-    client.close();
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
+   * 
+   * @param {*} userData 
+   * @returns Object of the user or null if there an error
+   */
 async function getUserData(userData) {
-
-  // console.log("async function getData(userData) {");
+  
+  if(userData.type === undefined || userData._id === undefined) {
+    return null;
+  }
 
   try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString);
 
-    // Get the database and collection
-    const db = client.db("miluim");
-    const typeCollection = db.collection(userData.type);
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
+
+    // Get the collection of <type> users
+    const users = client.users(userData.type);
 
     // Create a query based on the provided formData (assuming email is unique)
     const query = { _id: new ObjectId(userData._id) };
 
     // Find a document that matches the query
-    const existingUser = await typeCollection.findOne(query);
-
-    // console.log("received data: ", existingUser);
+    const existingUser = await users.findOne(query);
 
     // Close the connection to the database
     client.close();
 
-    return existingUser;
+    if(existingUser) {
+      console.log("user dqeqc: ", existingUser);
+      existingUser.type = userData.type;
+      
+      return existingUser;
+    }
 
+    return null;
+
+    
   } catch (error) {
     console.error('Error:', error);
   }
 }
-
-async function getUserPositionsData(positions) {
-  console.log("positionssssss: ", positions);
-
-  try {
-    // Connect to MongoDB Atlas
-    const client = await MongoClient.connect(mongoConnectionString);
-
-    // Get the database and collection
-    const db = client.db("miluim");
-    const positionsCollection = db.collection("positions");
-
-    // Ensure positions array is not empty
-    if (positions.length === 0) {
-      return;
-    }
-
-    // Query documents with _id values as strings
-    // const result = await positionsCollection.find({ _id: { $in: positions } }).toArray();
-    const result = []
-    for(let i = 0; i < positions.length; i++) {
-      const query = { _id: new ObjectId(positions[i]) };
-
-      // Find a document that matches the query
-      const existingUser = await positionsCollection.findOne(query);
-      result.push(existingUser);
-
-    }
-    console.log("result: ", result);
-
-    client.close();
-
-    return result;
-  } catch (error) {
-    console.error('Error:', error);
-  }
-}
-
-
-
-
-
-
-
 
 
 // Endpoint to handle recruiter signup
@@ -316,8 +113,18 @@ app.post('/api/signin', async (req, res) => {
   // Insert the form data into MongoDB
   const user = await signin(formData);
 
-  // Respond to the client
-  res.json(user);
+  console.log("user is: ", user);
+  
+
+  if(user) {
+    // Respond to the client
+    res.json(user);
+  } else {
+    // Respond to the client
+    res.json(null);
+  }
+
+  
 });
 
 // Endpoint to handle adding a position
@@ -325,10 +132,14 @@ app.post('/api/addPosition', async (req, res) => {
   const position = req.body; // Get the form data from the request body
 
   // Insert the form data into MongoDB
-  const ans = await addPosition(position);
+  const response = await addPosition(position);
+  console.log("ressssop: ", response);
 
+  if(response) {
+    res.json(response);
+  }
   // Respond to the client
-  res.json({ message: 'success' });
+  res.status(404);
 });
 
 app.post('/api/getUserData', async (req, res) => {
@@ -348,6 +159,7 @@ app.post('/api/getUserPositionsData', async (req, res) => {
 
   // Insert the form data into MongoDB
   const ans = await getUserPositionsData(positions);
+  console.log("ans: ", ans);
 
   // Respond to the client
   res.json(ans);
@@ -381,3 +193,4 @@ app.get('/api/volunteers', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
