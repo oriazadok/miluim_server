@@ -1,7 +1,7 @@
 const { MongoClient } = require('mongodb');
 
 // MongoDB Atlas connection string
-const mongoConnectionString = 'mongodb+srv://oriazadok:sz3ucFQwxqx5Avk@cluster0.feaagjf.mongodb.net/?retryWrites=true&w=majority';
+const mongoConnectionString = 'mongodb+srv://drushim4miluim:mkqDvuArtqrhMi2h@cluster0.jhowezn.mongodb.net/?retryWrites=true&w=majority';
 
 
 

@@ -11,12 +11,7 @@ const { addPosition, getUserPositionsData } = require('./positions')
 // Initialize Express app
 const app = express(); 
 
-
 const port = 3001;
-
-
-// MongoDB Atlas connection string
-const mongoConnectionString = 'mongodb+srv://oriazadok:sz3ucFQwxqx5Avk@cluster0.feaagjf.mongodb.net/?retryWrites=true&w=majority';
 
 // Middleware to parse JSON data and enable CORS
 app.use(express.json());
@@ -26,14 +21,6 @@ app.use(cors({
   methods: ['GET', 'POST'],
 }));
 app.options('/api/signup', cors());
-
-
-
-
-
-
-
-
 
 
 
@@ -72,7 +59,7 @@ async function getUserData(userData) {
     if(existingUser) {
       console.log("user dqeqc: ", existingUser);
       existingUser.type = userData.type;
-      
+
       return existingUser;
     }
 
@@ -81,7 +68,7 @@ async function getUserData(userData) {
     
   } catch (error) {
     console.error('Error:', error);
-  }
+  }PositionsPositions
 }
 
 
@@ -102,6 +89,7 @@ app.post('/api/signup_volunteer', async (req, res) => {
 
   // Insert the form data into MongoDB
   const user = await signup("volunteers", formData);
+  console.log("userrrrr: ", user);
 
   // Respond to the client
   res.json(user);
