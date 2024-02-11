@@ -144,9 +144,12 @@ app.post('/api/getUserPositionsData', async (req, res) => {
  //////////////// NOY UPDATE /////////////////////////////////
 // Function to update user data in the database
 async function updateUserData(userData) {
+  console.log("hehehehheheheh");
   if (!userData._id || !userData.updatedUserData) {
     return false;
   }
+
+  console.log("hehehehheheheh222222222");
 
   try {
     // Connect to MongoDB Atlas
@@ -195,21 +198,35 @@ app.post('/api/updateUserData', async (req, res) => {
 
  //////////////// NOY UPDATE /////////////////////////////////
 
+
+// Endpoint to handle updating user data
+app.post('/api/getUserData', async (req, res) => {
+  const userData = req.body; // Get the user data from the request body
+
+  
+  // If update is successful, return the updated user data
+  
+    const updatedUser = await getUserData(userData);
+    res.json(updatedUser);
+ 
+});
+
+
 // Endpoint to retrieve volunteers' data
 app.get('/api/volunteers', async (req, res) => {
   try {
 
-    const client = await MongoClient.connect(mongoConnectionString);
-    const db = client.db("miluim");
-    const collection = db.collection("volunteers");
+    // const client = await MongoClient.connect(mongoConnectionString);
+    // const db = client.db("miluim");
+    // const collection = db.collection("volunteers");
 
-    const volunteersData = await collection.find({}).toArray();
+    // const volunteersData = await collection.find({}).toArray();
     // console.log("volll: ", volunteersData);
 
     // Close the connection to the database
-    client.close();
+    // client.close();
 
-    res.send(volunteersData);
+    // res.send(volunteersData);
   } catch (error) {
     console.error('Error:', error);
     throw error; // Propagate the error
