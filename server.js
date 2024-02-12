@@ -159,7 +159,7 @@ app.post('/api/getUserPositionsData', async (req, res) => {
   // Respond to the client
   res.json(ans);
 })
- //////////////// NOY UPDATE /////////////////////////////////
+
 // Function to update user data in the database
 async function updateUserData(userData) {
   console.log("hehehehheheheh");
@@ -198,6 +198,30 @@ async function updateUserData(userData) {
   }
 }
 
+async function getVolunteers() {
+
+  try {
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
+
+    // Get the collection of users based on their type
+    const users = client.users("volunteers");
+
+    // Find all documents in the collection
+    const volunteersData = await users.find({}).toArray();
+
+    // Close the connection to the database
+    client.close();
+
+    // Return the retrieved data
+    return volunteersData;
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+}
+
+
 // Endpoint to handle updating user data
 app.post('/api/updateUserData', async (req, res) => {
   const userData = req.body; // Get the user data from the request body
@@ -213,9 +237,6 @@ app.post('/api/updateUserData', async (req, res) => {
     res.status(500).json({ success: false, message: 'Failed to update user data' });
   }
 });
-
- //////////////// NOY UPDATE /////////////////////////////////
-
 
 // Endpoint to handle updating user data
 app.post('/api/getUserData', async (req, res) => {
@@ -234,15 +255,11 @@ app.post('/api/getUserData', async (req, res) => {
 app.get('/api/volunteers', async (req, res) => {
   try {
 
-    // const client = await MongoClient.connect(mongoConnectionString);
-    // const db = client.db("miluim");
-    // const collection = db.collection("volunteers");
+   
+    const vols = await getVolunteers();
 
-    // const volunteersData = await collection.find({}).toArray();
-    // console.log("volll: ", volunteersData);
-
-    // Close the connection to the database
-    // client.close();
+    console.log("vols: ", vols);
+    res.json(vols);
 
     // res.send(volunteersData);
   } catch (error) {
