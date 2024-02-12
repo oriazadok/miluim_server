@@ -26,6 +26,10 @@ class DBConnection {
   
         return this.db.collection(type);
     }
+
+    volunteers() {
+        return this.db.collection("volunteers");
+    }
   
     positions() {
 

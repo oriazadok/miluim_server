@@ -8,6 +8,8 @@ const { DBConnection, connectDB } = require('./DBConnection');
 const { signup, signin } = require('./signing');
 const { addPosition, getUserPositionsData } = require('./positions')
 
+// const fs = require('fs');
+
 // Initialize Express app
 const app = express(); 
 
@@ -24,9 +26,25 @@ app.options('/api/signup', cors());
 
 
 
+// async function readJsonFile() {
+//   try {
+//     // Read the content of the file
+//     const fileContent = fs.readFileSync("/home/oriaz/Desktop/generate/recruiters.json", 'utf-8');
 
+//     // Parse the content as JSON
+//     const jsonData = JSON.parse(fileContent);
 
+//     for(let i = 0; i < jsonData.length; i++) {
+//       await signup("recruiters", jsonData[i]);
+//     }
+    
+//   } catch (error) {
+//     console.error(`Error reading JSON file: ${error.message}`);
+//     return null;
+//   }
+// }
 
+// readJsonFile();
 
 /**
    * 
@@ -159,11 +177,12 @@ app.post('/api/getUserPositionsData', async (req, res) => {
 app.get('/api/volunteers', async (req, res) => {
   try {
 
-    const client = await MongoClient.connect(mongoConnectionString);
-    const db = client.db("miluim");
-    const collection = db.collection("volunteers");
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
 
-    const volunteersData = await collection.find({}).toArray();
+    const volunteers = client.volunteers("volunteers");
+
+    const volunteersData = await volunteers.find({}).toArray();
     // console.log("volll: ", volunteersData);
 
     // Close the connection to the database
