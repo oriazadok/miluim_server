@@ -148,17 +148,6 @@ app.post('/api/addPosition', async (req, res) => {
   res.status(404);
 });
 
-app.post('/api/getUserData', async (req, res) => {
-  const userData = req.body; // Get the form data from the request body
-
-  console.log("getUserData: ", userData);
-
-  // Insert the form data into MongoDB
-  const response = await getUserData(userData);
-
-  // Respond to the client
-  res.json(response);
-});
 
 app.post('/api/getUserPositionsData', async (req, res) => {
   const positions = req.body; // Get the form data from the request body
@@ -170,25 +159,92 @@ app.post('/api/getUserPositionsData', async (req, res) => {
   // Respond to the client
   res.json(ans);
 })
+ //////////////// NOY UPDATE /////////////////////////////////
+// Function to update user data in the database
+async function updateUserData(userData) {
+  console.log("hehehehheheheh");
+  if (!userData._id || !userData.updatedUserData) {
+    return false;
+  }
 
+  console.log("hehehehheheheh222222222");
+
+  try {
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
+
+    // Get the collection of users based on their type
+    const users = client.users(userData.type);
+
+    // Create a query to find the user by their ID
+    const query = { _id: new ObjectId(userData._id) };
+
+    // Exclude the _id field from the update operation
+    delete userData.updatedUserData._id;
+
+    // Create an update object with the new user data
+    const update = { $set: userData.updatedUserData };
+
+    // Perform the update operation
+    const result = await users.updateOne(query, update);
+
+    // Close the connection to the database
+    client.close();
+
+    return result.modifiedCount > 0; // Return true if at least one document was modified
+  } catch (error) {
+    console.error('Error:', error);
+    return false;
+  }
+}
+
+// Endpoint to handle updating user data
+app.post('/api/updateUserData', async (req, res) => {
+  const userData = req.body; // Get the user data from the request body
+
+  // Update user data in the database
+  const success = await updateUserData(userData);
+
+  // If update is successful, return the updated user data
+  if (success) {
+    const updatedUser = await getUserData(userData);
+    res.json(updatedUser);
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to update user data' });
+  }
+});
+
+ //////////////// NOY UPDATE /////////////////////////////////
+
+
+// Endpoint to handle updating user data
+app.post('/api/getUserData', async (req, res) => {
+  const userData = req.body; // Get the user data from the request body
+
+  
+  // If update is successful, return the updated user data
+  
+    const updatedUser = await getUserData(userData);
+    res.json(updatedUser);
+ 
+});
 
 
 // Endpoint to retrieve volunteers' data
 app.get('/api/volunteers', async (req, res) => {
   try {
 
-    // Connect to MongoDB Atlas
-    const client = await connectDB();
+    // const client = await MongoClient.connect(mongoConnectionString);
+    // const db = client.db("miluim");
+    // const collection = db.collection("volunteers");
 
-    const volunteers = client.volunteers("volunteers");
-
-    const volunteersData = await volunteers.find({}).toArray();
+    // const volunteersData = await collection.find({}).toArray();
     // console.log("volll: ", volunteersData);
 
     // Close the connection to the database
-    client.close();
+    // client.close();
 
-    res.send(volunteersData);
+    // res.send(volunteersData);
   } catch (error) {
     console.error('Error:', error);
     throw error; // Propagate the error
@@ -200,4 +256,3 @@ app.get('/api/volunteers', async (req, res) => {
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
