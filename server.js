@@ -6,7 +6,8 @@ const { ObjectId } = require('mongodb');
 
 const { DBConnection, connectDB } = require('./DBConnection');
 const { signup, signin } = require('./signing');
-const { addPosition, getUserPositionsData } = require('./positions')
+const { addPosition, getUserPositionsData } = require('./positions');
+const { getVolunteers } = require('./volunteers');
 
 // const fs = require('fs');
 
@@ -29,13 +30,13 @@ app.options('/api/signup', cors());
 // async function readJsonFile() {
 //   try {
 //     // Read the content of the file
-//     const fileContent = fs.readFileSync("/home/oriaz/Desktop/generate/recruiters.json", 'utf-8');
+//     const fileContent = fs.readFileSync("/home/oriaz/Desktop/generate/volunteers.json", 'utf-8');
 
 //     // Parse the content as JSON
 //     const jsonData = JSON.parse(fileContent);
 
 //     for(let i = 0; i < jsonData.length; i++) {
-//       await signup("recruiters", jsonData[i]);
+//       await signup("volunteers", jsonData[i]);
 //     }
     
 //   } catch (error) {
@@ -198,28 +199,7 @@ async function updateUserData(userData) {
   }
 }
 
-async function getVolunteers() {
 
-  try {
-    // Connect to MongoDB Atlas
-    const client = await connectDB();
-
-    // Get the collection of users based on their type
-    const users = client.users("volunteers");
-
-    // Find all documents in the collection
-    const volunteersData = await users.find({}).toArray();
-
-    // Close the connection to the database
-    client.close();
-
-    // Return the retrieved data
-    return volunteersData;
-  } catch (error) {
-    console.error('Error:', error);
-    return [];
-  }
-}
 
 
 // Endpoint to handle updating user data
@@ -252,14 +232,14 @@ app.post('/api/getUserData', async (req, res) => {
 
 
 // Endpoint to retrieve volunteers' data
-app.get('/api/volunteers', async (req, res) => {
+app.post('/api/volunteers', async (req, res) => {
   try {
 
-   
-    const vols = await getVolunteers();
+    const query = req.body;
+    const volunteerss = await getVolunteers(query);
 
-    console.log("vols: ", vols);
-    res.json(vols);
+    console.log("vols: ", volunteerss);
+    res.json(volunteerss);
 
     // res.send(volunteersData);
   } catch (error) {
@@ -267,7 +247,6 @@ app.get('/api/volunteers', async (req, res) => {
     throw error; // Propagate the error
   }
 });
-
 
 // Start the server
 app.listen(port, () => {
