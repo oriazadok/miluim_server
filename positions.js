@@ -109,5 +109,130 @@ async function addPosition(position) {
     }
   }
 
+  async function filterPositions(filter) {
+    try {
+      // Connect to MongoDB Atlas
+      const client = await connectDB();
+  
+      // Get the positions collection
+      const positionsCollection = client.positions();
+      // console.log("positions: ", positionsCollection); -- test 
+      // Query documents with _id values as strings
+      const query = filter;
 
-module.exports = { addPosition, getUserPositionsData };
+
+      console.log("query: ", query);
+  
+      // Find documents that match the query
+      const result = await positionsCollection.find(query).toArray();
+
+      // console.log("result: ", result);
+      
+      client.close();
+  
+      return result;
+  
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+  async function deletePosition(posId) {
+    try {
+      // Connect to MongoDB Atlas
+      const client = await connectDB();
+  
+      // Get the positions collection
+      const positionsCollection = client.positions();
+  
+      // Convert the provided posId to a MongoDB ObjectID
+      const objectId = new ObjectId(posId._id);
+  
+      // Create a filter to find the document with the specified ID
+      const filter = { _id: objectId };
+  
+      // Delete the document that matches the filter
+      const result = await positionsCollection.deleteOne(filter);
+  
+      console.log("result is: ", result);
+  
+      // Check the result for success
+      if (result.deletedCount === 1) {
+        console.log(`Position with ID ${posId._id} deleted successfully.`);
+      } else {
+        console.log(`Position with ID ${posId._id} not found.`);
+      }
+  
+      const recruiterCollection = client.users("recruiters");
+  
+      // Create an update operation to pull the ID from the array field
+      const updateOperation = {
+        $pull: { positions: objectId },
+      };
+  
+      // Update the document that matches the filter
+      const res = await recruiterCollection.updateOne({ _id: new ObjectId(posId.publisherId) }, updateOperation);
+
+      console.log("res: ", res);
+      
+      client.close();
+  
+      return result;
+  
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+
+  async function editPosition(posId, updatedData) {
+    try {
+      // Connect to MongoDB Atlas
+      const client = await connectDB();
+  
+      // Get the positions collection
+      const positionsCollection = client.positions();
+  
+      // Convert the provided posId to a MongoDB ObjectID
+      const objectId = new ObjectId(posId._id);
+  
+      // Create a filter to find the document with the specified ID
+      const filter = { _id: objectId };
+  
+      // Delete the document that matches the filter
+      const result = await positionsCollection.deleteOne(filter);
+  
+      console.log("result is: ", result);
+  
+      // Check the result for success
+      if (result.deletedCount === 1) {
+        console.log(`Position with ID ${posId._id} deleted successfully.`);
+      } else {
+        console.log(`Position with ID ${posId._id} not found.`);
+      }
+  
+      const recruiterCollection = client.users("recruiters");
+  
+      // Create an update operation to pull the ID from the array field
+      const updateOperation = {
+        $pull: { positions: objectId },
+      };
+  
+      // Update the document that matches the filter
+      const res = await recruiterCollection.updateOne({ _id: new ObjectId(posId.publisherId) }, updateOperation);
+
+      console.log("res: ", res);
+      
+      client.close();
+  
+      return result;
+  
+    } catch (error) {
+      console.error('Error:', error);
+    }
+  }
+
+
+  
+
+module.exports = { addPosition, getUserPositionsData, filterPositions, deletePosition, editPosition };

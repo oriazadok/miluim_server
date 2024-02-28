@@ -6,7 +6,7 @@ const { ObjectId } = require('mongodb');
 
 const { DBConnection, connectDB } = require('./DBConnection');
 const { signup, signin } = require('./signing');
-const { addPosition, getUserPositionsData } = require('./positions');
+const { addPosition, getUserPositionsData, deletePosition, editPosition } = require('./positions');
 const { getVolunteers } = require('./volunteers');
 
 // const fs = require('fs');
@@ -90,6 +90,48 @@ async function getUserData(userData) {
   }PositionsPositions
 }
 
+/**
+   * 
+   * @param {*} positionData 
+   * @returns Object of the user or null if there an error
+   */
+async function getPositionData(positionData) {
+  
+  if(positionData.type === undefined || positionData._id === undefined) {
+    return null;
+  }
+
+  try {
+
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
+
+    // Get the collection of <type> positions
+    const positions = client.positions(positionData.type);
+
+    // Create a query based on the provided formData (assuming email is unique)
+    const query = { _id: new ObjectId(positionData._id) };
+
+    // Find a document that matches the query
+    const existingPosition = await positions.findOne(query);
+
+    // Close the connection to the database
+    client.close();
+
+    if(existingUser) {
+      console.log("user dqeqc: ", existingPosition);
+      existingPosition.type = positionData.type;
+
+      return existingPosition;
+    }
+
+    return null;
+
+    
+  } catch (error) {
+    console.error('Error:', error);
+  }PositionsPositions
+}
 
 // Endpoint to handle recruiter signup
 app.post('/api/signup_recruiter', async (req, res) => {
@@ -147,6 +189,112 @@ app.post('/api/addPosition', async (req, res) => {
   }
   // Respond to the client
   res.status(404);
+});
+
+// Endpoint to handle delete a position
+app.post('/api/deletePosition', async (req, res) => {
+  const position = req.body; // Get the form data from the request body
+
+  console.log("posid: ", position);
+
+  // Insert the form data into MongoDB
+  const response = await deletePosition(position);
+  // console.log("ressssop: ", response);
+
+  if(response) {
+    res.json(response);
+  }
+  // Respond to the client
+  res.status(404);
+});
+
+// Endpoint to handle edit a position
+app.post('/api/editPosition', async (req, res) => {
+  const position = req.body; // Get the form data from the request body
+
+  console.log("posid: ", position);
+
+  // Insert the form data into MongoDB
+  const response = await editPosition(position);
+  // console.log("ressssop: ", response);
+
+  if(response) {
+    res.json(response);
+  }
+  // Respond to the client
+  res.status(404);
+});
+
+
+
+
+// Function to update position data in the database
+async function updatePositionData(positionData) {
+  console.log("hehehehheheheh");
+  if (!positionData._id || !positionData.updatePositionData) {
+    return false;
+  }
+
+  console.log("hehehehheheheh222222222");
+
+  try {
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
+
+    // Get the collection of positions based on their type
+    const positions = client.positions(positionData.type);
+
+    // Create a query to find the position by their ID
+    const query = { _id: new ObjectId(positionData._id) };
+
+    // Exclude the _id field from the update operation
+    delete positionData.updatePositionData._id;
+
+    // Create an update object with the new position data
+    const update = { $set: positionData.updatePositionData };
+
+    // Perform the update operation
+    const result = await positions.updateOne(query, update);
+    
+    // Close the connection to the database
+    client.close();
+
+    return result.modifiedCount > 0; // Return true if at least one document was modified
+  } catch (error) {
+    console.error('Error:', error);
+    return false;
+  }
+}
+
+
+// Endpoint to handle updating position data
+app.post('/api/updatePositionData', async (req, res) => {
+  const positionData = req.body; // Get the position data from the request body
+
+  console.log('positionData: ', positionData);
+
+  // Update position data in the database
+  const success = await updatePositionData(positionData);
+
+  // If update is successful, return the updated position data
+  if (success) {
+    const updatedPosition = await getPositionData(positionData);
+    res.json(updatedPosition);
+  } else {
+    res.status(500).json({ success: false, message: 'Failed to update position data' });
+  }
+});
+
+// Endpoint to handle updating position data
+app.post('/api/getPositionData', async (req, res) => {
+  const positionData = req.body; // Get the position data from the request body
+
+  
+  // If update is successful, return the updated position data
+  
+    const updatedPosition = await getPositionData(positionData);
+    res.json(updatedPosition);
+ 
 });
 
 
