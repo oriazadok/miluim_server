@@ -278,14 +278,10 @@ async function getPositionData(positionData) {
 
   // Function to update position data in the database
 async function updatePositionData(positionData) {
-  console.log("positionData: ", positionData);
-  console.log("hehehehheheheh");
   // console.log("positionData.updatePositionData: ", positionData.updatePositionData);
   if (!positionData._id || !positionData.updatedPositionData) {
     return false;
   }
-
-  console.log("hehehehheheheh222222222");
 
   try {
     // Connect to MongoDB Atlas
@@ -302,8 +298,6 @@ async function updatePositionData(positionData) {
 
     // Create an update object with the new position data
     const update = { $set: positionData.updatedPositionData };
-
-    
 
     // Perform the update operation
     const result = await positions.updateOne(query, update);

@@ -186,15 +186,15 @@ app.post('/api/editPosition', async (req, res) => {
 app.post('/api/updatePositionData', async (req, res) => {
   const positionData = req.body; // Get the position data from the request body
 
-  console.log('positionData: ', positionData);
-
   // Update position data in the database
   const success = await updatePositionData(positionData);
+
+  console.log("success: ", success);
 
   // If update is successful, return the updated position data
   if (success) {
     // const updatedPosition = await getPositionData(positionData);
-    res.status(200)
+    res.status(200).json("good");
   } else {
     res.status(500).json({ success: false, message: 'Failed to update position data' });
   }
