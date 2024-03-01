@@ -76,7 +76,6 @@ async function getUserData(userData) {
     client.close();
 
     if(existingUser) {
-      console.log("user dqeqc: ", existingUser);
       existingUser.type = userData.type;
 
       return existingUser;
@@ -107,8 +106,7 @@ app.post('/api/signup_volunteer', async (req, res) => {
 
   // Insert the form data into MongoDB
   const user = await signup("volunteers", formData);
-  console.log("userrrrr: ", user);
-
+  
   // Respond to the client
   res.json(user);
 });
@@ -119,8 +117,7 @@ app.post('/api/signin', async (req, res) => {
   // Insert the form data into MongoDB
   const user = await signin(formData);
 
-  console.log("user is: ", user);
-  
+  console.log("user: ", user);
 
   if(user) {
     // Respond to the client
@@ -139,8 +136,7 @@ app.post('/api/addPosition', async (req, res) => {
 
   // Insert the form data into MongoDB
   const response = await addPosition(position);
-  console.log("ressssop: ", response);
-
+  
   if(response) {
     res.json(response);
   }
@@ -151,8 +147,6 @@ app.post('/api/addPosition', async (req, res) => {
 // Endpoint to handle delete a position
 app.post('/api/deletePosition', async (req, res) => {
   const position = req.body; // Get the form data from the request body
-
-  console.log("posid: ", position);
 
   // Insert the form data into MongoDB
   const response = await deletePosition(position);
@@ -168,8 +162,6 @@ app.post('/api/deletePosition', async (req, res) => {
 // Endpoint to handle edit a position
 app.post('/api/editPosition', async (req, res) => {
   const position = req.body; // Get the form data from the request body
-
-  console.log("posid: ", position);
 
   // Insert the form data into MongoDB
   const response = await editPosition(position);
@@ -189,8 +181,6 @@ app.post('/api/updatePositionData', async (req, res) => {
   // Update position data in the database
   const success = await updatePositionData(positionData);
 
-  console.log("success: ", success);
-
   // If update is successful, return the updated position data
   if (success) {
     // const updatedPosition = await getPositionData(positionData);
@@ -204,12 +194,10 @@ app.post('/api/updatePositionData', async (req, res) => {
 app.post('/api/getPositionData', async (req, res) => {
   const positionData = req.body; // Get the position data from the request body
 
-  
+
   // If update is successful, return the updated position data
-  
-    const updatedPosition = await getPositionData(positionData);
-    res.json(updatedPosition);
- 
+  const updatedPosition = await getPositionData(positionData);
+  res.json(updatedPosition); 
 });
 
 
@@ -217,21 +205,17 @@ app.post('/api/getUserPositionsData', async (req, res) => {
   const positions = req.body; // Get the form data from the request body
 
   // Insert the form data into MongoDB
-  const ans = await getUserPositionsData(positions);
-  console.log("ans: ", ans);
+  const poses = await getUserPositionsData(positions);
 
   // Respond to the client
-  res.json(ans);
+  res.json(poses);
 })
 
 // Function to update user data in the database
 async function updateUserData(userData) {
-  console.log("hehehehheheheh");
   if (!userData._id || !userData.updatedUserData) {
     return false;
   }
-
-  console.log("hehehehheheheh222222222");
 
   try {
     // Connect to MongoDB Atlas
@@ -264,7 +248,6 @@ async function updateUserData(userData) {
 
 
 
-
 // Endpoint to handle updating user data
 app.post('/api/updateUserData', async (req, res) => {
   const userData = req.body; // Get the user data from the request body
@@ -285,12 +268,9 @@ app.post('/api/updateUserData', async (req, res) => {
 app.post('/api/getUserData', async (req, res) => {
   const userData = req.body; // Get the user data from the request body
 
-  
   // If update is successful, return the updated user data
-  
-    const updatedUser = await getUserData(userData);
-    res.json(updatedUser);
- 
+  const updatedUser = await getUserData(userData);
+  res.json(updatedUser);
 });
 
 
@@ -301,10 +281,8 @@ app.post('/api/volunteers', async (req, res) => {
     const query = req.body;
     const volunteerss = await getVolunteers(query);
 
-    console.log("vols: ", volunteerss);
     res.json(volunteerss);
 
-    // res.send(volunteersData);
   } catch (error) {
     console.error('Error:', error);
     throw error; // Propagate the error

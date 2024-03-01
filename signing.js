@@ -26,7 +26,6 @@ async function signup(type, formData) {
 
     // Find a document that matches the query
     const existingUser = await authCollection.findOne(query);
-    console.log("existingUser: ", existingUser);
 
     // If the user already exists, return without inserting data
     if (existingUser !== null) {
@@ -59,8 +58,6 @@ async function signup(type, formData) {
         
         const newUserData = await users.findOne({_id: newUser.insertedId});
         newUserData.type = type;
-
-        console.log("newUserData: ", newUserData);
 
         return newUserData;
       }
@@ -101,7 +98,6 @@ async function signin(formData) {
 
     // Check if the user with the provided credentials exists
     if (existingUser) {
-      console.log("User exists:", existingUser);
 
       // Get the collection of <type> users
       const users = client.users(existingUser.type);
