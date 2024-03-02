@@ -19,16 +19,33 @@ async function getVolunteers(query) {
     // Add region, service, rovai, and profile to the filterCriteria if they exist in the query
     if (query.region) filterCriteria.region = query.region;
     if (query.service) filterCriteria.service = query.service;
-    if (query.rovai) filterCriteria.rovai = { $gte: parseInt(query.rovai) };
-    if (query.profile) filterCriteria.profile = { $gte: parseInt(query.profile) };
+    if (query.rovai) filterCriteria.rovai = { $gte: query.rovai };
+    if (query.profile) filterCriteria.profile = { $gte: query.profile };
 
     // If ageFrom and ageTo are valid numbers, add age range to the filter criteria
     if (!isNaN(ageFrom) && !isNaN(ageTo)) {
-      filterCriteria.age = { $gte: ageFrom, $lte: ageTo };
+      filterCriteria.age = { $gte: ageFrom, $lte: ageTo }
     }
+    else {
+      if (!isNaN(ageFrom)) {
+        filterCriteria.age = { 
+          $gte: ageFrom
+         };
+      }
+      if (!isNaN(ageTo)) {
+        filterCriteria.age = {
+          $lte: ageTo 
+        };
+      }
+    }
+    
+
+    console.log("filterCriteria: ", filterCriteria)
 
     // Find documents based on the filterCriteria
     const volunteersData = await users.find(filterCriteria).toArray();
+
+    console.log("volunteersData: ", volunteersData);
 
     // Close the connection to the database
     client.close();

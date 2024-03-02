@@ -92,31 +92,68 @@ async function addPosition(position) {
     }
   }
 
+  // async function getPositionsData(positions) {
+  
+  //   // Ensure positions array is not empty
+  //   if (positions.length === 0) {
+  //     return [];
+  //   }
+    
+  //   try {
+  
+  //     // Connect to MongoDB Atlas
+  //     const client = await connectDB();
+  
+  //     // Get the positions collection
+  //     const positionsCollection = client.positions();
+  
+  //     // Query documents with _id values as strings
+
+  //     const positionIds = positions.map(positionId => new ObjectId(positionId));
+
+  //     const query = { _id: { $in: positionIds } };
+
+  //     // Find documents that match the query
+  //     const result = await positionsCollection.find(query).toArray();
+      
+  //     client.close();
+      
+  //     return result;
+  
+  //   } catch (error) {
+  //     console.error('Error:', error);
+  //   }
+  // }
+
   async function filterPositions(filter) {
     try {
-      // Connect to MongoDB Atlas
-      const client = await connectDB();
-  
-      // Get the positions collection
-      const positionsCollection = client.positions();
-      // console.log("positions: ", positionsCollection); -- test 
-      // Query documents with _id values as strings
-      const query = filter;
+        // Connect to MongoDB Atlas
+        const client = await connectDB();
 
+        // Get the positions collection
+        const positionsCollection = client.positions();
 
-      // Find documents that match the query
-      const result = await positionsCollection.find(query).toArray();
+        // Query documents with _id values as strings
+        const query = filter;
 
-      // console.log("result: ", result);
-      
-      client.close();
-  
-      return result;
-  
+        // Project only the _id field
+        const projection = { _id: 1 };
+
+        // Find documents that match the query and project only the _id field
+        const result = await positionsCollection.find(query).project(projection).toArray();
+
+        client.close();
+
+        // Extract only the IDs from the result array
+        const ids = result.map(doc => doc._id);
+
+        return ids;
+
     } catch (error) {
-      console.error('Error:', error);
+        console.error('Error:', error);
     }
-  }
+}
+
 
   async function deletePosition(posId) {
     try {

@@ -6,7 +6,7 @@ const { ObjectId } = require('mongodb');
 
 const { DBConnection, connectDB } = require('./DBConnection');
 const { signup, signin } = require('./signing');
-const { addPosition, getUserPositionsData, deletePosition, editPosition, updatePositionData, getPositionData } = require('./positions');
+const { addPosition, getUserPositionsData, filterPositions, deletePosition, editPosition, getPositionData, updatePositionData } = require('./positions');
 const { getVolunteers } = require('./volunteers');
 
 // const fs = require('fs');
@@ -144,6 +144,16 @@ app.post('/api/addPosition', async (req, res) => {
   res.status(404);
 });
 
+
+app.post('/api/filterPosition', async (req, res) => {
+  const filter = req.body; // Get the form data from the request body
+
+  // Insert the form data into MongoDB
+  const data = await filterPositions(filter);
+
+  res.json(data);
+})
+
 // Endpoint to handle delete a position
 app.post('/api/deletePosition', async (req, res) => {
   const position = req.body; // Get the form data from the request body
@@ -200,7 +210,6 @@ app.post('/api/getPositionData', async (req, res) => {
   res.json(updatedPosition); 
 });
 
-
 app.post('/api/getUserPositionsData', async (req, res) => {
   const positions = req.body; // Get the form data from the request body
 
@@ -210,6 +219,18 @@ app.post('/api/getUserPositionsData', async (req, res) => {
   // Respond to the client
   res.json(poses);
 })
+
+// app.post('/api/getPositionsData', async (req, res) => {
+//   const positions = req.body; // Get the form data from the request body
+
+//   console.log("ositions: ", positions);
+
+//   // Insert the form data into MongoDB
+//   // const poses = await getPositionsData();
+
+//   // Respond to the client
+//   res.json(poses);
+// })
 
 // Function to update user data in the database
 async function updateUserData(userData) {
