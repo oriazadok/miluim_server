@@ -6,8 +6,8 @@ const { ObjectId } = require('mongodb');
 
 const { DBConnection, connectDB } = require('./DBConnection');
 const { signup, signin } = require('./signing');
-const { addPosition, getUserPositionsData, filterPositions, deletePosition, editPosition, getPositionData, updatePositionData } = require('./positions');
-const { getVolunteers } = require('./volunteers');
+const { addPosition, getUserPositionsData, filterPositions, deletePosition, editPosition, getPositionData, updatePositionData, insertToArray } = require('./positions');
+const { getVolunteers, getVolunteersbyId } = require('./volunteers');
 
 // const fs = require('fs');
 
@@ -144,9 +144,18 @@ app.post('/api/addPosition', async (req, res) => {
   res.status(404);
 });
 
+app.post('/api/insertToArray', async (req, res) => {
+  const {_id, publisherId, applayer_Id} = req.body;
+  console.log('Received arguments:', _id, publisherId, applayer_Id);
+  const response = await insertToArray(_id, publisherId, applayer_Id, 'applayers');
+  console.log(response)
+});
+
 
 app.post('/api/filterPosition', async (req, res) => {
   const filter = req.body; // Get the form data from the request body
+
+  console.log("filter: ", filter);
 
   // Insert the form data into MongoDB
   const data = await filterPositions(filter);
@@ -301,6 +310,21 @@ app.post('/api/volunteers', async (req, res) => {
 
     const query = req.body;
     const volunteerss = await getVolunteers(query);
+
+    res.json(volunteerss);
+
+  } catch (error) {
+    console.error('Error:', error);
+    throw error; // Propagate the error
+  }
+});
+
+
+app.post('/api/getVolunteersbyId', async (req, res) => {
+  try {
+
+    const query = req.body;
+    const volunteerss = await getVolunteersbyId(query);
 
     res.json(volunteerss);
 

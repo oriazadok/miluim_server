@@ -60,11 +60,14 @@ async function addPosition(position) {
    * @returns An array of the positions objects
    */
   async function getUserPositionsData(positions) {
+
+    
   
     // Ensure positions array is not empty
     if (positions.length === 0) {
       return [];
     }
+
     
     try {
   
@@ -80,8 +83,13 @@ async function addPosition(position) {
 
       const query = { _id: { $in: positionIds } };
 
+      console.log("positions: ", positions);
+    
+
       // Find documents that match the query
       const result = await positionsCollection.find(query).toArray();
+
+      console.log("result: ", result);
       
       client.close();
       
@@ -133,14 +141,22 @@ async function addPosition(position) {
         // Get the positions collection
         const positionsCollection = client.positions();
 
-        // Query documents with _id values as strings
-        const query = filter;
+        // Initialize an empty query
+        let query = {};
+
+        // If filter is not empty, use it as the query
+        if (Object.keys(filter).length !== 0) {
+            query = filter;
+        }
 
         // Project only the _id field
         const projection = { _id: 1 };
 
+        console.log("query: ", query);
+
         // Find documents that match the query and project only the _id field
         const result = await positionsCollection.find(query).project(projection).toArray();
+        console.log("result: ", result); // Fix typo here
 
         client.close();
 
@@ -189,6 +205,22 @@ async function addPosition(position) {
     } catch (error) {
       console.error('Error:', error);
     }
+  }
+
+  async function insertToArray(_id, publisherId, applayer_Id, field) {
+    console.log('Received arguments:', _id, publisherId, applayer_Id);
+    const client = await connectDB();
+    const positionsCollection = client.positions();
+    // console.log(positionsCollection)
+    const query = { _id: new ObjectId(_id) };
+    const result = await positionsCollection.updateOne(
+      query,
+      { $push: { [field]: applayer_Id } }
+    );
+
+    console.log("result:" ,result);
+    client.close();
+    return 200;
   }
 
 
@@ -309,4 +341,4 @@ async function updatePositionData(positionData) {
 }
   
 
-module.exports = { addPosition, getUserPositionsData, filterPositions, deletePosition, editPosition, getPositionData, updatePositionData };
+module.exports = { addPosition, getUserPositionsData, filterPositions, deletePosition, editPosition, getPositionData, updatePositionData, insertToArray };

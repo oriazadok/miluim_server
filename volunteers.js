@@ -26,6 +26,7 @@ async function getVolunteers(query) {
     if (!isNaN(ageFrom) && !isNaN(ageTo)) {
       filterCriteria.age = { $gte: ageFrom, $lte: ageTo }
     }
+  
     else {
       if (!isNaN(ageFrom)) {
         filterCriteria.age = { 
@@ -58,6 +59,40 @@ async function getVolunteers(query) {
   }
 }
 
+async function getVolunteersbyId(volunteersIds) {
+
+  // Ensure positions array is not empty
+  if (volunteersIds.length === 0) {
+    return [];
+  }
+
+  try {
+    // Connect to MongoDB Atlas
+    const client = await connectDB();
+
+    // Get the collection of users based on their type
+    const users = client.users("volunteers");
+
+    const positionIds = volunteersIds.map(positionId => new ObjectId(positionId));
+
+    const query = { _id: { $in: positionIds } };
 
 
-module.exports = { getVolunteers };
+    // Find documents that match the query
+    const result = await users.find(query).toArray();
+    console.log("result: ", result);
+
+    // Close the connection to the database
+    client.close();
+
+    // Return the retrieved data
+    return result;
+  } catch (error) {
+    console.error('Error:', error);
+    return [];
+  }
+}
+
+
+
+module.exports = { getVolunteers, getVolunteersbyId };
