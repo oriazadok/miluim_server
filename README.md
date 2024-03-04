@@ -29,7 +29,7 @@ For more information please go to : https://github.com/oriazadok/Drushim4Miluim
  - [React JS](https://www.geeksforgeeks.org/react-tutorial/)
  - [Git](https://www.geeksforgeeks.org/introduction-to-github/)
 
- Once you have these prerequisites installed, you can follow these steps to download a React project from Github and run it on your computer: 
+ Once you have these prerequisites installed, you can follow these steps to download a React project from Github and run it on your computer.
 
  Clone the repository :
  ```
@@ -47,4 +47,7 @@ For more information please go to : https://github.com/oriazadok/Drushim4Miluim
   ```
  npm start
  ```
+ Once you have installed the server you can run our project Drushim4miluim.
+
+ ENJOY!!!
 
