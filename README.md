@@ -15,7 +15,7 @@ Project site: https://github.com/oriazadok/Drushim4Miluim
 - [Aaron Luchan](https://www.github.com/aronl096)
 
 
-## 💡 About The Project: 💡
+## About The Project: 
 
 This project was developed in order to help recruiters and volunteers for reserve(miluim) of the IDF find each other.  
 We all were called to the reserves and understood the need for such platform.  
